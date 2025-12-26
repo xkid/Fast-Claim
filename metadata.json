@@ -1,6 +1,6 @@
 {
-  "name": "SwiftClaim iOS Expense Tracker",
-  "description": "An iOS-optimized web application to capture receipts, automatically recognize amounts using AI, and generate a perfectly formatted A4 claim form and attachment page.",
+  "name": "SwiftClaim Expense Tracker",
+  "description": "A responsive web application to capture receipts, automatically recognize amounts using AI, and generate a perfectly formatted A4 claim form and attachment page.",
   "requestFramePermissions": [
     "camera"
   ]
