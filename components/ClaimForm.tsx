@@ -26,12 +26,12 @@ export const ClaimForm: React.FC<ClaimFormProps> = ({ state }) => {
 
   return (
     <div className="a4-preview print-page p-8 text-[12px] font-sans flex flex-col">
-      <div className="text-center mb-6">
+      <div className="text-center mb-4">
         <h1 className="text-base font-bold uppercase tracking-widest">Elcomp Technologies Sdn Bhd (589723-U)</h1>
-        <h2 className="text-sm font-bold mt-2 underline">STAFF MONTHLY CLAIM FORM</h2>
+        <h2 className="text-sm font-bold mt-1 underline">STAFF MONTHLY CLAIM FORM</h2>
       </div>
 
-      <div className="flex justify-between mb-8">
+      <div className="flex justify-between mb-6">
         <div className="flex items-center gap-2">
           <span className="font-bold">Name:</span>
           <span className="border-b border-black min-w-[200px] pb-0.5">{state.name}</span>
@@ -42,7 +42,7 @@ export const ClaimForm: React.FC<ClaimFormProps> = ({ state }) => {
         </div>
       </div>
 
-      <table className="w-full border-collapse border border-black mb-10">
+      <table className="w-full border-collapse border border-black mb-6">
         <thead>
           <tr className="bg-slate-50">
             <th className="border border-black px-2 py-1 w-12">Items</th>
@@ -62,8 +62,8 @@ export const ClaimForm: React.FC<ClaimFormProps> = ({ state }) => {
               </td>
             </tr>
           ))}
-          {/* Pad to 20 rows if needed */}
-          {Array.from({ length: Math.max(0, 15 - categorySummary.length) }).map((_, i) => (
+          {/* Pad to 10 rows (reduced from 15 due to landscape height constraint) */}
+          {Array.from({ length: Math.max(0, 10 - categorySummary.length) }).map((_, i) => (
             <tr key={`pad-${i}`} className="h-7">
               <td className="border border-black text-center">{categorySummary.length + i + 1}</td>
               <td className="border border-black px-2 py-1"></td>
@@ -78,7 +78,7 @@ export const ClaimForm: React.FC<ClaimFormProps> = ({ state }) => {
         </tbody>
       </table>
 
-      <div className="mt-auto flex justify-between items-end pb-10">
+      <div className="mt-auto flex justify-between items-end pb-4">
         <div className="text-center w-64">
           <div className="border-t border-black pt-2">Claimed By:</div>
         </div>

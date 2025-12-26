@@ -384,9 +384,6 @@ const App: React.FC = () => {
               <Printer size={18} />
               Print / Save PDF
             </button>
-            <div className="text-sm text-slate-500 font-medium hidden sm:block">
-              Use landscape mode for best results if printing attachments.
-            </div>
           </div>
 
           <div className="w-full h-full overflow-y-auto preview-container">
