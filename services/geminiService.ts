@@ -2,7 +2,14 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 export async function analyzeReceipt(base64Image: string): Promise<{ amount: number; categorySuggestion: string }> {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // Accessing process.env.API_KEY inside the function to avoid top-level crashes
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    console.error("API Key is missing from environment variables.");
+    return { amount: 0, categorySuggestion: "Misc" };
+  }
+
+  const ai = new GoogleGenAI({ apiKey: apiKey });
   
   // Clean the base64 string
   const data = base64Image.split(',')[1] || base64Image;
