@@ -292,7 +292,6 @@ const App: React.FC = () => {
             ref={fileInputRef} 
             onChange={handleFileUpload} 
             accept="image/*" 
-            capture="environment" 
             className="hidden" 
           />
           <input 
