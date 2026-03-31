@@ -17,7 +17,7 @@ export const AttachmentBoard: React.FC<AttachmentBoardProps> = ({ receipts }) =>
         Attachments
       </div>
       
-      <div className="w-full p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 print:grid-cols-3 gap-4 items-start">
+      <div className="w-full p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 print:grid-cols-2 gap-4 items-start">
         {filteredReceipts.map((r) => (
           <div 
             key={r.id} 

@@ -397,7 +397,7 @@ const App: React.FC = () => {
               </button>
             </div>
             <TransformWrapper
-              initialScale={typeof window !== 'undefined' ? Math.min(1, (window.innerWidth - 32) / 1122) : 1}
+              initialScale={typeof window !== 'undefined' ? Math.min(1, (window.innerWidth - 32) / 794) : 1}
               minScale={0.2}
               maxScale={3}
               centerOnInit={true}
