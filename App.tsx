@@ -20,6 +20,7 @@ const App: React.FC = () => {
   const [activeStep, setActiveStep] = useState<'dashboard' | 'preview'>('dashboard');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [rawImageToCrop, setRawImageToCrop] = useState<string | null>(null);
+  const [targetReceiptId, setTargetReceiptId] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -56,6 +57,7 @@ const App: React.FC = () => {
       };
       reader.readAsDataURL(file);
     }
+    if (e.target) e.target.value = '';
   };
 
   const handleManualAdd = () => {
@@ -72,29 +74,38 @@ const App: React.FC = () => {
     setState(prev => ({ ...prev, receipts: [...prev.receipts, newReceipt] }));
   };
 
-  const finalizeReceipt = async (croppedBase64: string) => {
+  const handleCropComplete = async (croppedBase64: string) => {
     setRawImageToCrop(null);
-    setIsAnalyzing(true);
     
-    try {
-      const { amount, categorySuggestion } = await analyzeReceipt(croppedBase64);
-      
-      const newReceipt: Receipt = {
-        id: Math.random().toString(36).substr(2, 9),
+    if (targetReceiptId) {
+      updateReceipt(targetReceiptId, {
         originalImage: croppedBase64,
-        croppedImage: croppedBase64,
-        amount: amount || 0,
-        category: categorySuggestion || 'Misc',
-        remark: '',
-        date: new Date().toISOString().split('T')[0],
-        isManual: false
-      };
+        croppedImage: croppedBase64
+      });
+      setTargetReceiptId(null);
+    } else {
+      setIsAnalyzing(true);
       
-      setState(prev => ({ ...prev, receipts: [...prev.receipts, newReceipt] }));
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsAnalyzing(false);
+      try {
+        const { amount, categorySuggestion } = await analyzeReceipt(croppedBase64);
+        
+        const newReceipt: Receipt = {
+          id: Math.random().toString(36).substr(2, 9),
+          originalImage: croppedBase64,
+          croppedImage: croppedBase64,
+          amount: amount || 0,
+          category: categorySuggestion || 'Misc',
+          remark: '',
+          date: new Date().toISOString().split('T')[0],
+          isManual: false
+        };
+        
+        setState(prev => ({ ...prev, receipts: [...prev.receipts, newReceipt] }));
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsAnalyzing(false);
+      }
     }
   };
 
@@ -237,7 +248,10 @@ const App: React.FC = () => {
           {/* Action Toolbar */}
           <div className="flex flex-wrap items-center gap-3 mb-8">
             <button 
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => {
+                setTargetReceiptId(null);
+                fileInputRef.current?.click();
+              }}
               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-sm active:scale-95 transition"
             >
               <Camera size={18} />
@@ -320,9 +334,16 @@ const App: React.FC = () => {
                      {receipt.croppedImage ? (
                       <img src={receipt.croppedImage} className="w-full h-full object-contain p-2" alt="Receipt" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-300">
-                        <FileText size={48} />
-                      </div>
+                      <button 
+                        onClick={() => {
+                          setTargetReceiptId(receipt.id);
+                          fileInputRef.current?.click();
+                        }}
+                        className="w-full h-full flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition"
+                      >
+                        <ImagePlus size={32} className="mb-2" />
+                        <span className="text-sm font-medium">Add Image</span>
+                      </button>
                     )}
                     <button 
                       onClick={() => removeReceipt(receipt.id)}
@@ -442,8 +463,11 @@ const App: React.FC = () => {
       {rawImageToCrop && (
         <CropTool 
           imageSrc={rawImageToCrop} 
-          onCrop={finalizeReceipt}
-          onCancel={() => setRawImageToCrop(null)}
+          onCrop={handleCropComplete}
+          onCancel={() => {
+            setRawImageToCrop(null);
+            setTargetReceiptId(null);
+          }}
         />
       )}
     </div>
