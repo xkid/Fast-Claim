@@ -17,11 +17,11 @@ export const AttachmentBoard: React.FC<AttachmentBoardProps> = ({ receipts }) =>
         Attachments
       </div>
       
-      <div className="w-full p-4 columns-1 sm:columns-2 md:columns-3 print:columns-3 gap-2">
+      <div className="w-full p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 print:grid-cols-3 gap-4 items-start">
         {filteredReceipts.map((r) => (
           <div 
             key={r.id} 
-            className="break-inside-avoid mb-2"
+            className="break-inside-avoid"
             style={{ pageBreakInside: 'avoid' }}
           >
             <img 

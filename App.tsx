@@ -422,7 +422,7 @@ const App: React.FC = () => {
                 }, [zoomIn, zoomOut, resetTransform]);
 
                 return (
-                  <TransformComponent wrapperClass="!w-full flex-1 print-wrapper" contentClass="!w-max flex flex-col items-center gap-12 print:gap-0 pb-20 print:pb-0 print-content">
+                  <TransformComponent wrapperClass="!w-full flex-1 print-wrapper" contentClass="!w-max print:!w-full print:!block flex flex-col items-center gap-12 print:gap-0 pb-20 print:pb-0 print-content">
                     {/* Page 1: Claim Form */}
                     <ClaimForm state={state} />
 
