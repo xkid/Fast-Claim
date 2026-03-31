@@ -9,30 +9,25 @@ interface ClaimFormProps {
 export const ClaimForm: React.FC<ClaimFormProps> = ({ state }) => {
   const allCategories = [...DEFAULT_CATEGORIES, ...state.customCategories];
   
-  const categorySummary = allCategories.map((cat, index) => {
+  const categorySummary = allCategories.map((cat) => {
     const relevantReceipts = state.receipts.filter(r => r.category === cat);
     const totalAmount = relevantReceipts.reduce((sum, r) => sum + r.amount, 0);
     const remarks = relevantReceipts.map(r => r.remark).filter(rem => rem.trim() !== "").join(', ');
     
     return {
-      index: index + 1,
       name: cat,
       amount: totalAmount,
       description: remarks ? `(${remarks})` : ""
     };
-  });
+  }).filter(item => item.amount > 0).map((item, index) => ({
+    ...item,
+    index: index + 1
+  }));
 
   const totalClaim = categorySummary.reduce((sum, item) => sum + item.amount, 0);
 
-  // Landscape A4 is short (210mm). We need to be careful with vertical space.
-  // 15mm padding leaves ~180mm. 
-  // Header ~20mm, Signatures ~30mm. Table gets ~130mm.
-  // 15 rows might be too tight. Reduced to max 8 filler rows or exactly the content.
-  const TARGET_ROWS = 8;
-  const fillerRows = Math.max(0, TARGET_ROWS - categorySummary.length);
-
   return (
-    <div className="a4-preview print-page text-[12px] font-sans flex flex-col" style={{ padding: '15mm' }}>
+    <div className="a4-preview print-page text-[12px] font-sans flex flex-col shadow-xl bg-white mx-auto p-[15mm]">
       <div className="text-center mb-4">
         <h1 className="text-base font-bold uppercase tracking-widest">Elcomp Technologies Sdn Bhd (589723-U)</h1>
         <h2 className="text-sm font-bold mt-1 underline">STAFF MONTHLY CLAIM FORM</h2>
@@ -66,17 +61,15 @@ export const ClaimForm: React.FC<ClaimFormProps> = ({ state }) => {
                   {item.name} <span className="text-slate-500 italic ml-1">{item.description}</span>
                 </td>
                 <td className="border border-black px-2 py-1 text-right">
-                  {item.amount > 0 ? item.amount.toFixed(2) : ""}
+                  {item.amount.toFixed(2)}
                 </td>
               </tr>
             ))}
-            {Array.from({ length: fillerRows }).map((_, i) => (
-              <tr key={`pad-${i}`} className="h-7">
-                <td className="border border-black text-center">{categorySummary.length + i + 1}</td>
-                <td className="border border-black px-2 py-1"></td>
-                <td className="border border-black px-2 py-1 text-right"></td>
+            {categorySummary.length === 0 && (
+              <tr className="h-7">
+                <td colSpan={3} className="border border-black text-center text-slate-400 italic">No claims for this month</td>
               </tr>
-            ))}
+            )}
             <tr className="font-bold h-9 bg-slate-50">
               <td className="border border-black"></td>
               <td className="border border-black px-2 py-1 text-right">Total:</td>

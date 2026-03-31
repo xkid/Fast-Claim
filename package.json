@@ -9,10 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google/genai": "^1.34.0",
+    "idb-keyval": "^6.2.2",
+    "lucide-react": "^0.562.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "lucide-react": "^0.562.0",
-    "@google/genai": "^1.34.0"
+    "react-image-crop": "^11.0.10",
+    "react-zoom-pan-pinch": "^3.7.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

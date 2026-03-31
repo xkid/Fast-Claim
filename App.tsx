@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Plus, Trash2, Printer, ChevronRight, Wand2, FileText, Layout, Loader2, Download, Upload, RotateCcw, ImagePlus, Settings, FileInput } from 'lucide-react';
+import { Camera, Plus, Trash2, Printer, ChevronRight, Wand2, FileText, Layout, Loader2, Download, Upload, RotateCcw, ImagePlus, Settings, FileInput, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import { Receipt, ClaimState, DEFAULT_CATEGORIES } from './types';
 import { analyzeReceipt } from './services/geminiService';
 import { CropTool } from './components/CropTool';
 import { ClaimForm } from './components/ClaimForm';
 import { AttachmentBoard } from './components/AttachmentBoard';
+import { get, set, del } from 'idb-keyval';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 
 const App: React.FC = () => {
   const [state, setState] = useState<ClaimState>({
@@ -18,25 +20,32 @@ const App: React.FC = () => {
   const [activeStep, setActiveStep] = useState<'dashboard' | 'preview'>('dashboard');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [rawImageToCrop, setRawImageToCrop] = useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   // Persistence
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('swiftclaim_state');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setState(parsed);
+    const loadData = async () => {
+      try {
+        const saved = await get('swiftclaim_state');
+        if (saved) {
+          setState(saved);
+        }
+      } catch (e) {
+        console.error("Failed to load from storage", e);
+      } finally {
+        setIsLoaded(true);
       }
-    } catch (e) {
-      console.error("Failed to load from storage", e);
-    }
+    };
+    loadData();
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('swiftclaim_state', JSON.stringify(state));
-  }, [state]);
+    if (isLoaded) {
+      set('swiftclaim_state', state).catch(e => console.error("Failed to save state", e));
+    }
+  }, [state, isLoaded]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -58,8 +67,7 @@ const App: React.FC = () => {
       category: 'Misc',
       remark: '',
       date: new Date().toISOString().split('T')[0],
-      isManual: true,
-      layout: { x: 5, y: 5, width: 25, height: 25 }
+      isManual: true
     };
     setState(prev => ({ ...prev, receipts: [...prev.receipts, newReceipt] }));
   };
@@ -79,13 +87,7 @@ const App: React.FC = () => {
         category: categorySuggestion || 'Misc',
         remark: '',
         date: new Date().toISOString().split('T')[0],
-        isManual: false,
-        layout: { 
-          x: (state.receipts.length * 5) % 70, 
-          y: (state.receipts.length * 10) % 70, 
-          width: 30, 
-          height: 30 
-        }
+        isManual: false
       };
       
       setState(prev => ({ ...prev, receipts: [...prev.receipts, newReceipt] }));
@@ -101,10 +103,6 @@ const App: React.FC = () => {
       ...prev,
       receipts: prev.receipts.map(r => r.id === id ? { ...r, ...updates } : r)
     }));
-  };
-
-  const updateLayout = (id: string, layout: Receipt['layout']) => {
-    updateReceipt(id, { layout });
   };
 
   const removeReceipt = (id: string) => {
@@ -154,9 +152,9 @@ const App: React.FC = () => {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (confirm("Are you sure you want to reset? All local data will be permanently cleared.")) {
-      localStorage.removeItem('swiftclaim_state');
+      await del('swiftclaim_state');
       setState({
         name: '',
         month: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
@@ -386,38 +384,56 @@ const App: React.FC = () => {
             </button>
           </div>
 
-          <div className="w-full h-full overflow-y-auto preview-container">
-            <div className="flex flex-col items-center gap-12 pb-20">
-              
-              {/* Page 1: Claim Form */}
-              <div className="shadow-xl bg-white">
-                <ClaimForm state={state} />
-              </div>
-
-              {/* Page 2: Attachments */}
-              {state.receipts.some(r => !!r.croppedImage) && (
-                <div className="relative">
-                  <div className="absolute -left-64 top-10 w-60 hidden xl:block no-print">
-                     <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                        <div className="flex items-center gap-2 text-blue-600 mb-2">
-                           <Wand2 size={16} />
-                           <span className="font-bold text-sm">Layout Tips</span>
-                        </div>
-                        <p className="text-xs text-slate-500 leading-relaxed">
-                          Drag receipts to rearrange. Drag the bottom-right corner of a receipt to resize it.
-                        </p>
-                     </div>
-                  </div>
-                  
-                  <div className="shadow-xl bg-white">
-                    <AttachmentBoard 
-                      receipts={state.receipts} 
-                      onUpdateReceipt={updateLayout}
-                    />
-                  </div>
-                </div>
-              )}
+          <div className="flex-1 w-full overflow-hidden preview-container flex flex-col items-center">
+            <div className="flex items-center justify-center gap-2 mb-4 no-print sticky top-0 z-10">
+              <button onClick={() => window.dispatchEvent(new CustomEvent('zoomOut'))} className="p-2 bg-white rounded-lg shadow-sm hover:bg-slate-50 text-slate-700">
+                <ZoomOut size={20} />
+              </button>
+              <button onClick={() => window.dispatchEvent(new CustomEvent('resetTransform'))} className="p-2 bg-white rounded-lg shadow-sm hover:bg-slate-50 text-slate-700">
+                <Maximize size={20} />
+              </button>
+              <button onClick={() => window.dispatchEvent(new CustomEvent('zoomIn'))} className="p-2 bg-white rounded-lg shadow-sm hover:bg-slate-50 text-slate-700">
+                <ZoomIn size={20} />
+              </button>
             </div>
+            <TransformWrapper
+              initialScale={typeof window !== 'undefined' ? Math.min(1, (window.innerWidth - 32) / 1122) : 1}
+              minScale={0.2}
+              maxScale={3}
+              centerOnInit={true}
+              wheel={{ step: 0.1 }}
+            >
+              {({ zoomIn, zoomOut, resetTransform }) => {
+                // Attach zoom functions to window for the external buttons to use
+                useEffect(() => {
+                  const handleZoomIn = () => zoomIn();
+                  const handleZoomOut = () => zoomOut();
+                  const handleReset = () => resetTransform();
+                  
+                  window.addEventListener('zoomIn', handleZoomIn);
+                  window.addEventListener('zoomOut', handleZoomOut);
+                  window.addEventListener('resetTransform', handleReset);
+                  
+                  return () => {
+                    window.removeEventListener('zoomIn', handleZoomIn);
+                    window.removeEventListener('zoomOut', handleZoomOut);
+                    window.removeEventListener('resetTransform', handleReset);
+                  };
+                }, [zoomIn, zoomOut, resetTransform]);
+
+                return (
+                  <TransformComponent wrapperClass="!w-full flex-1 print-wrapper" contentClass="!w-max flex flex-col items-center gap-12 print:gap-0 pb-20 print:pb-0 print-content">
+                    {/* Page 1: Claim Form */}
+                    <ClaimForm state={state} />
+
+                    {/* Page 2+: Attachments */}
+                    {state.receipts.some(r => !!r.croppedImage) && (
+                      <AttachmentBoard receipts={state.receipts} />
+                    )}
+                  </TransformComponent>
+                );
+              }}
+            </TransformWrapper>
           </div>
         </div>
       )}

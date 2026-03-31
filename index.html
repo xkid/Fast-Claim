@@ -27,7 +27,7 @@
             }
 
             /* Reset all application layout wrappers to prevent scrollbars and clipping */
-            #root, main, .min-h-screen, .preview-container, .flex-col, .gap-12 {
+            html, body, #root, main, .min-h-screen, .preview-container, .print-wrapper, .print-content {
                 display: block !important;
                 height: auto !important;
                 width: 100% !important;
@@ -36,13 +36,29 @@
                 padding: 0 !important;
                 margin: 0 !important;
                 background: transparent !important;
-                gap: 0 !important;
+            }
+
+            .react-transform-wrapper {
+                transform: none !important;
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+                position: static !important;
+            }
+
+            .react-transform-component {
+                transform: none !important;
+                width: 100% !important;
+                height: auto !important;
+                position: static !important;
             }
             
             /* Styles for the actual pages to be printed */
             .print-page {
                 width: 297mm !important;
                 height: 210mm !important;
+                max-width: 297mm !important;
+                max-height: 210mm !important;
                 page-break-after: always !important;
                 break-after: page !important;
                 margin: 0 !important;
@@ -50,16 +66,44 @@
                 overflow: hidden !important; /* Prevent tiny spills from creating new pages */
                 border: none !important;
                 box-shadow: none !important;
-                display: block !important;
+                display: flex !important;
+                flex-direction: column !important;
                 position: relative !important;
                 background: white !important;
                 left: 0 !important;
                 top: 0 !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            .print-page:last-child, .print-page-auto:last-child {
+                page-break-after: auto !important;
+                break-after: auto !important;
             }
 
             /* Remove wrapper shadows during print */
             .shadow-xl, .shadow-sm, .shadow-md, .bg-white {
                 box-shadow: none !important;
+            }
+
+            .print-page-auto {
+                width: 297mm !important;
+                height: auto !important;
+                max-width: 297mm !important;
+                max-height: none !important;
+                page-break-after: always !important;
+                break-after: page !important;
+                margin: 0 !important;
+                padding: 10mm !important;
+                overflow: visible !important;
+                border: none !important;
+                box-shadow: none !important;
+                display: flex !important;
+                flex-direction: column !important;
+                position: relative !important;
+                background: white !important;
+                left: 0 !important;
+                top: 0 !important;
             }
         }
         
@@ -74,15 +118,15 @@
             margin: 0 auto;
         }
 
-        @media screen and (max-width: 310mm) {
-            .preview-container {
-                overflow-x: auto;
-                padding-bottom: 20px;
-            }
-            .a4-preview {
-                min-width: 297mm;
-                transform-origin: top left;
-            }
+        .a4-preview-auto {
+            width: 297mm;
+            min-height: 210mm;
+            height: auto;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            position: relative;
+            overflow: hidden;
+            margin: 0 auto;
         }
     </style>
 <script type="importmap">
@@ -96,9 +140,11 @@
   }
 }
 </script>
+<link rel="stylesheet" href="/index.css">
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-900 overflow-x-hidden">
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>

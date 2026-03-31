@@ -8,13 +8,6 @@ export interface Receipt {
   remark: string;
   date: string;
   isManual: boolean;
-  // Positioning for the attachment board
-  layout: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
 }
 
 export const DEFAULT_CATEGORIES = [
